@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# run the PasswordCrack2 program for all test sets
+#
+# produces the following result files:
+#
+#       out.N           standard output from test #N
+#       err.N           standard error output from test #N
+#
+
+export PATH=/usr/local/jdk/bin:$PATH
+export CLASSPATH=.:/home/fac/ark/public_html/pj2.jar
+
+n=1
+while [ -f args.$n ]
+do
+	rm -f out.$n err.$n
+	args="`cat args.$n`"
+	echo "java pj2 PasswordCrack2 $args"
+	java pj2 PasswordCrack2 $args > out.$n 2> err.$n
+	cmp stdout.$n out.$n
+	cmp stderr.$n err.$n
+	n=`expr $n + 1`
+done

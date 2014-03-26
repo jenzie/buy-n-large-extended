@@ -1,0 +1,59 @@
+Important files:
+
+	README		this file
+
+	RUN		a shellscript for testing your program
+
+	args.?		command-line arguments for test #?
+	db.?		password hash database for test #?
+	stdout.?	stdout for test #?
+	stderr.?	stderr for test #?
+
+We are using JDK7 for this assignment; unfortunately, the Java versions
+installed in /usr/bin/javac and /usr/bin/java on the CS Ubuntu
+systems are JDK6.  This means that in order to test your program on the
+CS systems you will need to point your shell to the correct JDK version.
+You will also need to add the Parallel Java 2 library archive file to
+your CLASSPATH.  To do this, you'll need to modify your JAVA_HOME, PATH,
+and CLASSPATH environment variables.  For Bash, execute these commands
+in a shell window:
+
+	export JAVA_HOME=/usr/local/jdk
+	export PATH=$JAVA_HOME/bin:$PATH
+	export CLASSPATH=.:/home/fac/ark/public_html/pj2.jar
+
+For Csh users, use these commands:
+
+	setenv JAVA_HOME   /usr/local/jdk
+	setenv PATH        $JAVA_HOME/bin:$PATH
+	setenv CLASSPATH   .:/home/fac/ark/public_html/pj2.jar
+
+This will put the correct Java commands at the front of your search path,
+overriding the default commands found in /usr/bin, and will allow the
+Java compiler to find the P2J library.
+
+To do this for all your shell windows, you can add these statements to
+your shell configuration files (.bashrc, .bash_profile, .cshrc, and/or
+.login) *after* any statements that pull in system-wide configuration
+files (which set PATH to a fixed value, undoing your modifications).
+Any shell windows you create from that moment onward will have these
+definitions.
+
+If you are doing your development somewhere other than on a CS system,
+be sure that you are using JDK7, and be sure to allow yourself adequate
+time to test your program on our Ubuntu systems.  You'll also need
+to install the PJ2 library; see the PJ2 web page for details, at
+<http://www.cs.rit.edu/~ark/pj2.shtml>.  You're on your own if you choose
+to do this.
+
+The RUN script automatically tests your program against all the supplied
+data sets, saving your output into files named out.? and err.? for
+each test.  It then uses the 'cmp' command to tell you which output
+files have differences from the sample output; you can go on to use
+'diff' to see these differences in detail.
+
+Any differences between your output and the test output should be
+corrected before submitting your program.
+
+NOTE:  These test files test only some of the program's functionality!
+Be sure to exhaustively test your solution.
