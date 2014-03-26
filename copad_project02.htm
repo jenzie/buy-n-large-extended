@@ -1,0 +1,605 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+            "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>CSCI-251 - Programming Project 2</title>
+  <link rel="stylesheet" type="text/css" href="/~wrc/css/de.css">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="robots" content="nofollow,noarchive">
+</head>
+<body>
+
+<h1>CSCI-251 - Programming Project 2</h1>
+
+<h2>Due:
+Sunday, April 6, 2014
+
+</h2>
+
+<p>
+<em>
+Last updated
+2014/03/17 16:37:39
+
+</em>
+</p>
+
+<p><em>Update history:</em></p>
+
+<table>
+
+<tr>
+   <td><code>2014/03/17:</code></td>
+   <td><code>initial version</code></td>
+</tr>
+
+</table>
+
+<hr>
+
+<ol>
+<li><a href="#intro">Introduction</a>
+<li><a href="#over">Overview</a>
+<li><a href="#details">Program Requirements</a>
+<li><a href="#files">Supplied Files</a>
+<li><a href="#submit">Turning In Your Solution</a>
+<li><a href="#grading">Grading</a>
+<li><a href="#notes">Notes</a>
+</ol>
+
+<hr>
+
+<a name="intro"></a>
+<h2>1. Introduction</h2>
+
+<p>
+For this assignment, you will write a Java program that uses the
+<a href="/~ark/pj2.shtml">Parallel Java 2 Library</a>.
+The goal of this assignment is to help you learn about multicore parallel
+programming.
+</p>
+
+<hr>
+
+<a name="over"></a>
+<h2>2. Overview</h2>
+
+<p>
+Online retailing giant BuyNLarge.com has a large number of users; each
+user has an account on the web site, and each account has a password
+(used to authenticate the user to the web site).
+Here are three of BuyNLarge's users and their passwords:
+</p>
+
+<blockquote><pre>
+kingroland 12345
+obama1     prz1
+camdiaz    d42
+</pre></blockquote>
+
+<p>
+BuyNLarge does not store the plaintext passwords. Instead, BuyNLarge has
+a database of <em>password hashes</em>.
+Here are the users and their password hashes:
+</p>
+
+<blockquote><pre>
+kingroland 5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5
+obama1     500d444d9045edee33178d2e4980577b9791f65f2178676de770206d93762850
+camdiaz    fea809a3679643a78a3a8f7ed6aaf1ec08198ef3ca15763f9e85423080e284e5
+</pre></blockquote>
+
+<p>
+Each password hash is a 64-digit hexadecimal number (a 256-bit number).
+The hash of a password is computed by applying the
+<a href="http://en.wikipedia.org/wiki/SHA-2">SHA256</a>
+hash function to the password:
+</p>
+
+<blockquote><pre>
+Password hash = SHA256(password)
+</pre></blockquote>
+
+<p>
+<strong>Note:</strong>  this is <em>different from</em> what was done in
+project 1!
+</p>
+
+<p>
+A number of libraries are available which contain code for calculating
+SHA256; for example, here is a Java code fragment for doing this
+computation:
+</p>
+
+<blockquote><pre>
+import java.security.MessageDigest;
+
+MessageDigest md = MessageDigest.getInstance ("SHA-256");
+String password = "12345";
+byte[] data = password.getBytes ("UTF-8");
+md.update (data);
+data = md.digest();
+</pre></blockquote>
+
+<p>
+As the result of a
+<a href="http://en.wikipedia.org/wiki/Harry_Potter_and_the_Deathly_Hallows">
+recent change in your employer's fortunes</a>,
+you have been forced to seek employment elsewhere.
+Ernst Stavro Blofeld, the evil head of
+<a href="http://en.wikipedia.org/wiki/S.P.E.C.T.R.E.">S.P.E.C.T.R.E.</a>,
+has broken into BuyNLarge's system
+and stolen the password hash database.
+It's not possible to compute the input of SHA256 given the output,
+so Blofeld can't find the users' passwords
+directly from the password hashes.
+Instead, Blofeld carries out a <em>brute-force attack</em>.
+</p>
+
+<p>
+Blofeld can't try every possible arbitrary password; that would take too
+long and prevent him from carrying out his dastardly plans. Instead,
+Blofeld contents himself with finding passwords consisting of anywhere
+from one through four characters, where each character is a lowercase
+letter a through z or a digit 0 through 9.
+Blofeld goes through every
+such password, computes the digest of that password, and checks if the
+password digest matches that of any user in the database.
+If so, Blofeld has found that user's password. 
+</p>
+
+<p>
+You, Blofeld's minion, have been tasked with writing a program to
+using the <a href="/~ark/pj2.shtml">Parallel Java 2 Library</a>
+to carry out the brute-force attack.
+The program's input is a password hash database file.
+The program's output is a list of users whose passwords were found
+along with each such user's password.
+The users do not have to appear in the output in any particular order;
+however, each line of output must contain information about one and only
+one user.
+When finished, the program prints two final lines with the number of
+users and the number of passwords found, as shown here:
+</p>
+
+<blockquote><pre>
+$ java pj2 PasswordCrack2 db.txt
+camdiaz d42
+obama1 prz1
+3 users
+2 passwords found
+</pre></blockquote>
+
+<hr>
+
+<a name="details"></a>
+<h2>3. Program Requirements</h2>
+
+<p>
+The following sections describe the operation of your program and the
+implementation method you must follow.
+Grading will be based on how well your submission meets these 
+requirements.
+</p>
+
+<h3>3.1. Performance</h3>
+
+<p>
+Your program will be run with a command of this format:
+</p>
+
+<blockquote><pre>
+java  pj2  PasswordCrack2  <em>db</em>
+</pre></blockquote>
+
+<p>
+where <code><em>db</em></code> is the name of the password hash
+database file.
+(This means that the program's class must be named
+<code>PasswordCrack2</code>, and this class must not be in a package.)
+</p>
+
+<p>
+If the command line does not have the required number of arguments,
+the program must print a usage message on the standard error output
+and must exit.
+The exact wording of the usage message is up to you.
+</p>
+
+<p>
+Your program may make the following assumptions about the password hash
+database file:
+</p>
+
+<ul>
+<li>The file is a plain-text file containing one or more lines
+<li>Each line contains a user name and a password hash (as a 64-character
+hexadecimal string)
+<li>The name and hash fields are separate by one or more whitespace
+(blank and/or tab) characters
+</ul>
+
+<p>
+If the password hash database file violates these assumptions,
+the program's behavior is not specified.
+<em>Note:</em>
+"The program's behavior is not specified" means two things: It is
+up to you to decide what the program will do in this situation, and I
+will not test this situation when grading your project. 
+</p>
+
+<p>
+For each user in the database whose password is found by the brute force
+search, the program must print on the standard output one line consisting
+of the user name, a space character, and the password.
+There are no characters before the name; there
+is exactly one space character between the name and the password; and
+there are no characters after the password. 
+</p>
+
+<p>
+Each line of the standard output contains the results for exactly one
+user.
+</p>
+
+<p>
+The program must print the following as the last two lines on the
+standard output, in this order:
+</p>
+
+<blockquote><pre>
+<em>U</em> users
+<em>N</em> passwords found
+</pre></blockquote>
+
+<p>
+where <code><em>U</em></code> is the number of users in the password
+hash database and <code><em>N</em></code> is the number of users whose
+passwords were found.
+There are no characters before the number on each line; there is exactly
+one space after the number; and there are no additional characters
+between the last word shown above on each line and the trailing newline
+character.
+</p>
+
+<h3>3.2. Design</h3>
+
+<p>
+The program must be a parallel program written with the
+<a href="/~ark/pj2.shtml">Parallel Java 2 Library</a>.
+</p>
+
+<p>
+The program must partition the computation among multiple threads so as
+to experience a speedup when run on a multicore parallel computer.
+</p>
+
+<p>
+The program must follow the parallel programming patterns studied in
+class, be designed using object oriented design principles as
+appropriate, and make use of reusable software components as appropriate.
+</p>
+
+<p>
+Each class or interface must include a Javadoc comment describing the
+overall interface.
+Each method within each class or interface must include a Javadoc comment
+describing the overall method, the arguments (if any), the return value
+(if any), and the exceptions thrown (if any).
+(See the original Java source files we have studied in class as examples
+of the style of Javadoc comment I'm looking for.
+Be sure to look at the original files, not just the simplified versions I
+show in the lecture notes; the original files are linked from the course
+<a href="/~wrc/courses/common/csci251/links.shtml">resources page</a>.)
+</p>
+
+<hr>
+
+<a name="files"></a>
+<h2>4. Supplied Files</h2>
+
+<p>
+For testing purposes, a set of sample input and output files are
+available to you.
+To retrieve them, on a CS Ubuntu<sup><a href="#ftn">&reg;</a></sup>
+system, execute the following command:
+</p>
+
+<blockquote><pre>
+get  wrc  cpds-2
+</pre></blockquote>
+
+<p>
+Each test will consist of the following files, where
+<code><em>N</em></code> is the sequence number of the test:
+</p>
+
+<table>
+
+<tr>
+  <td>&nbsp;</td>
+  <td><code>args.<em>N</em></code></td>
+  <td>&nbsp;</td>
+  <td>Command-line arguments for the test</td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td><code>db.<em>N</em></code></td>
+  <td>&nbsp;</td>
+  <td>The password hash database for the test</td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td><code>stdout.<em>N</em></code></td>
+  <td>&nbsp;</td>
+  <td>The standard output produced by the program</td>
+</tr>
+
+  <td>&nbsp;</td>
+  <td><code>stderr.<em>N</em></code></td>
+  <td>&nbsp;</td>
+  <td>The standard error output produced by the program</td>
+</tr>
+
+</table>
+
+<p>
+Other files will be copied along with the test files; their names and
+contents should be self-explanatory.
+</p>
+
+<hr>
+
+<a name="submit"></a>
+<h2>5. How to Submit your Solution</h2>
+
+<p>
+To submit your solution, on the CS Ubuntu systems, use this command:
+</p>
+
+<blockquote>
+<code>try  wrc-grd  cpds-2   </code>  <em>files</em>
+</blockquote>
+
+<p>
+where <em>files</em> are the names of all the <code>.java</code>
+files implementing your solution (one of which must be named
+<code>PasswordCrack2.java</code>).
+You may also submit a <code>README</code> file if you wish to communicate
+additional information that I should know before grading your program.
+</p>
+
+<p>
+These tests may or may not match the sample test data I have provided,
+and you may not see the results from any or all of the tests.
+It is up to you to fully test your program before submitting it; do not
+assume that your program is correct just because it passes all the tests
+you see!
+</p>
+
+<p>
+The minimum acceptance test is that your code must be complete - that is,
+it must compile and link cleanly when submitted.
+Submissions <em>will not be accepted</em> if they fail to
+compile and link cleanly.
+(Warning messages from the compiler are acceptable, but not fatal errors.)
+</p>
+
+<hr>
+
+<a name="grading"></a>
+<h2>6. Grading</h2>
+
+<p>
+Your submission will be graded out of 50 points as follows:
+</p>
+
+<blockquote>
+<table border="1" cellpadding="3">
+
+<tr>
+ <th>Criterion</th><th>Value</th><th>Interpretation</th>
+</tr>
+
+<tr>
+ <td>Performance</td><td>35 points</td>
+ <td>How well your program's output meets the performance requirements
+described above</td>
+</tr>
+
+<tr>
+ <td>Design</td><td>15 points</td>
+ <td>How well your program meets the design requirements
+described above (including documentation)</td>
+</tr>
+
+</table>
+</blockquote>
+
+<hr>
+
+<a name="notes"></a>
+<h2>7. Notes</h2>
+
+<p>
+You must use JDK 1.7 to compile your program with the Parallel Java 2
+Library.
+</p>
+
+<p>
+To compile and test your program on the CS lab computers, you must set
+the Java class path to include the directory with your source files and
+the Parallel Java 2 Library JAR file, and you must ensure that your
+shell's search path is set so that the <code>java</code> and
+<code>javac</code> commands execute the correct Java version.
+To do this, you must alter your CLASSPATH environment variable, and may
+need to alter your PATH environment variable as well.
+</p>
+
+<p>
+To determine whether or not PATH must be modified, you need to know which
+Java version you are using.
+The default Java installation on the CS systems is JDK 1.6.
+The compilation and execution commands are found in
+<code>/usr/bin</code>:
+</p>
+
+<blockquote><pre>
+$ which javac
+/usr/bin/javac
+$ which java
+/usr/bin/java
+</pre></blockquote>
+
+<p>
+You can also verify the version this way; for the default installation,
+</p>
+
+<blockquote><pre>
+$ javac -version
+javac 1.6.0_30
+$ java -version
+java version "1.6.0_30"
+OpenJDK Runtime Environment (IcedTea6 1.13.1) (6b30-1.13.1-1ubuntu2~0.12.04.1)
+OpenJDK Server VM (build 23.25-b01, mixed mode)
+</pre></blockquote>
+
+<p>
+If you're using JDK 1.7, the binaries are in <code>/usr/local/jdk</code>,
+and the current version number is 1.7.0_51:
+</p>
+
+<blockquote><pre>
+$ which javac
+/usr/local/jdk/bin/javac
+$ javac -version
+javac 1.7.0_51
+$ which java
+/usr/local/jdk/bin/java
+$ java -version
+java version "1.7.0_51"
+Java(TM) SE Runtime Environment (build 1.7.0_51-b13)
+Java HotSpot(TM) Server VM (build 24.51-b03, mixed mode)
+</pre></blockquote>
+
+<p>
+To change your Java version, you must change your PATH environment
+variable.
+For Bash users, execute this command in your shell window:
+</p>
+
+<blockquote><pre>
+$ export PATH=/usr/local/dcs/jdk/bin:$PATH
+</pre></blockquote>
+
+<p>
+For Csh users, use this command:
+</p>
+
+<blockquote><pre>
+% setenv PATH /usr/local/dcs/jdk/bin:$PATH
+</pre></blockquote>
+
+<p>
+In both cases, this will put the JDK 1.7 <code>bin</code> directory
+(where the commands are located) at the beginning of your search path.
+</p>
+
+<p>
+Next, you must add the Parallel Java 2 JAR file to your CLASSPATH.
+For Bash users, execute this command:
+</p>
+
+<blockquote><pre>
+$ export CLASSPATH=.:/home/fac/ark/public_html/pj2.jar
+</pre></blockquote>
+
+<p>
+For Csh users, use this command:
+</p>
+
+<blockquote><pre>
+% setenv CLASSPATH .:/home/fac/ark/public_html/pj2.jar
+</pre></blockquote>
+
+<p>
+You can either execute these commands in each shell window, or you can
+modify your shell configuration files (<code>.bashrc</code> and
+<code>.bash_profile</code> for Bash, <code>.cshrc</code> and
+<code>.login</code> for Csh) to automatically set these variables in
+every shell you start up.
+<em>Note:</em> only shells you start up after you modify the
+configuration file(s) will have the new configuration - shells already
+running won't be affected. 
+</p>
+
+<p>
+Finally, to compile and execute your program, use these commands:
+</p>
+
+<blockquote><pre>
+javac PasswordCrack2.java
+java pj2 PasswordCrack2 db.txt
+</pre></blockquote>
+
+<p>
+If you prefer to work on your own personal computer, you must install JDK
+1.7 and the Parallel Java 2 Library. For that you are on your own. See
+the <a href="/~ark/pj2.shtml">Parallel Java 2 Library</a> page for
+download, installation, and usage instructions.
+</p>
+
+<p>
+When I compile and run your program, the Java class path will point to
+the directory with your compiled class files plus the Parallel Java 2
+Library JAR file, and I will use JDK 1.7.
+</p>
+
+<p>
+This is an individual assignment; you may not work together with anyone
+to produce your solution.
+You may re-use example code shown in class as well as derive your own
+code from it; if you do that, or if you obtain inspiration from another
+source (e.g., a web site, random people you meet in the hallway, etc.),
+you are expected to fully document the source of the inspiration, giving
+credit where credit is due.
+Failure to do so is considered to be plagiarism; see the
+<a href="/~wrc/courses/csci251/syllabus/">course syllabus</a> for
+a description of my academic conduct policies.
+</p>
+
+<p>
+Late submissions will be graded only if you requested an extension before
+the deadline for submitting the assignment.
+See the <a href="/~wrc/courses/csci251/syllabus/">course syllabus</a> for
+a description of the extension policy.
+</p>
+
+<p>
+The specification for output produced by your program is exact.
+Any deviation (e.g., extra spaces, debugging messages in the output,
+etc.) will be considered to be incorrect output.
+</p>
+
+<p>
+Refer to the example programs we have studied in class for examples of
+reasonable programming style, or to the coding style recommendations
+linked from the
+<a href="/~wrc/courses/csci251/syllabus/">course syllabus</a>.
+</p>
+
+</ul>
+
+<hr>
+<a name="ftn"></a>
+<em>
+Ubuntu<sup>&reg;</sup> is a registered trademark of Canonical Ltd.
+
+</em>
+
+<hr>
+
+</body>
+</html>
