@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -43,15 +44,25 @@ public class PasswordCrack2 extends Task {
         String dbFile = args[0];
 
         // Read in the database file containing all users and their hashed passwords.
-        HashMap<String, String> databaseOfUsers = new HashMap<String, String>();
+        ArrayList<User> databaseOfUsers = new ArrayList<User>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dbFile));
             String line = reader.readLine();
 
             while (line != null) {
                 String[] entry = line.split("\\s+");
-                if(!databaseOfUsers.containsKey(entry[0]))
-                    databaseOfUsers.put(entry[0], entry[1]);
+
+                // Check if user exists already in the database array.
+                boolean exists = false;
+                for(User user : databaseOfUsers) {
+                    if(user.getUser().equals(entry[0])) {
+                        exists = true;
+                        break;
+                    }
+                }
+                // Add new user to database array.
+                if(!exists)
+                    databaseOfUsers.add(new User(entry[0], entry[1]));
 
                 line = reader.readLine();
             }
