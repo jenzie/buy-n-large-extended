@@ -35,7 +35,7 @@ public class PasswordCrack2 extends Task {
     public void main(String[] args) throws Exception {
         // Check command line arguments.
         if(args.length != 1) {
-            System.err.println("Usage: java pj2 PasswordCrack2 <databaseFile>");
+            System.err.println("Usage: java PasswordCrack2 db");
             System.exit(0);
         }
 

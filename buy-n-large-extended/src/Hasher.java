@@ -1,10 +1,10 @@
 /**
  author: Jenny Zhen
- date: 02.20.14
+ date: 04.06.14
  language: Java
  file: Hasher.java
- assignment: BuyNLarge
- http://www.cs.rit.edu/~wrc/courses/csci251/projects/1/
+ assignment: BuyNLargeExtended
+ http://www.cs.rit.edu/~wrc/courses/csci251/projects/2/
  */
 
 import java.io.UnsupportedEncodingException;
