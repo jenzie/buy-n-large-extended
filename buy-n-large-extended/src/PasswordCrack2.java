@@ -1,3 +1,4 @@
+import edu.rit.pj2.Loop;
 import edu.rit.pj2.Task;
 
 import java.io.BufferedReader;
@@ -6,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.Semaphore;
 
 /**
  author: Jenny Zhen
@@ -44,7 +46,7 @@ public class PasswordCrack2 extends Task {
         String dbFile = args[0];
 
         // Read in the database file containing all users and their hashed passwords.
-        ArrayList<User> databaseOfUsers = new ArrayList<User>();
+        final ArrayList<User> databaseOfUsers = new ArrayList<User>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dbFile));
             String line = reader.readLine();
@@ -75,5 +77,35 @@ public class PasswordCrack2 extends Task {
                     "Usage: java PasswordCrack dictionary db\n" +
                             "Error: File " + dbFile + " is empty.");
         }
+
+        final Semaphore numUsersProcessed = new Semaphore(0);
+        final Semaphore numPasswordsFound = new Semaphore(0);
+
+        // .exec() uses an anonymous class.
+        parallelFor(0, databaseOfUsers.size() - 1).exec(new Loop() {
+            @Override
+            public void run(int i) throws Exception {
+                User currentUser = databaseOfUsers.get(i);
+                Generator generator = new Generator();
+                //System.out.println(currentUser.getUser() + " " + currentUser.getPassword());
+
+                for(String password : generator) {
+                    //System.out.println(password);
+                    String hashedPassword = Hasher.byteArrayToHexString(Hasher.getHash(password));
+                    //System.out.println(hashedPassword + " " + currentUser.getPassword());
+                    if(hashedPassword.equals(currentUser.getPassword())) {
+                        System.out.println(currentUser.getUser() + " " + password);
+                        numPasswordsFound.release();
+                        break;
+                    }
+                }
+                numUsersProcessed.release();
+            }
+        });
+        // As soon as all users have been processed, we need to print out the number processed.
+        numUsersProcessed.acquire(databaseOfUsers.size());
+
+        System.out.println(databaseOfUsers.size() + " users");
+        System.out.println(numPasswordsFound.availablePermits() + " passwords found");
     }
 }

@@ -15,39 +15,49 @@ import java.util.Iterator;
  * Passwords consist of anywhere from one through four characters, where each character is a lowercase letter
  * a through z or a digit 0 through 9.
  */
-public class Generator implements Iterator<String> {
-    char[] password = {'a', 0, 0, 0};
+public class Generator implements Iterable<String> {
 
     @Override
-    public boolean hasNext() {
-        return new String(password).equals("9999");
-    }
+    public Iterator<String> iterator() {
+        return new Iterator<String>() {
+            char[] password = {'a'};
 
-    @Override
-    public String next() {
-        // Save the current password to return.
-        String currentPassword = new String(password);
-
-        // Increment to get the next password before returning the current password.
-        for(int i = 0; i < password.length; i++) {
-            if(password[i] == 'z') {
-                password[i] = '0';
-                break;
+            @Override
+            public boolean hasNext() {
+                return !(new String(password).equals("aaaaa"));
             }
-            else if(password[i] == '9') {
-                password[i] = 'a';
+
+            @Override
+            public String next() {
+                // Save the current password to return.
+                String currentPassword = new String(password);
+
+                // Increment to get the next password before returning the current password.
+                for(int i = 0; i <= password.length; i++) {
+                    if(i >= password.length) {
+                        password = (new String(password) + "a").toCharArray();
+                        break;
+                    }
+                    else if(password[i] == 'z') {
+                        password[i] = '0';
+                        break;
+                    }
+                    else if(password[i] == '9') {
+                        password[i] = 'a';
+                    }
+                    else {
+                        password[i] = (char) (password[i] + 1);
+                        break;
+                    }
+                }
+
+                return currentPassword.trim();
             }
-            else if(password[i] == 0)
-                password[i] = 'a';
-            else
-                password[i] = password[i]++;
-        }
 
-        return currentPassword;
-    }
-
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException();
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }
