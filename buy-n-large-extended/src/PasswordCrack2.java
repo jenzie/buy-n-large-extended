@@ -1,5 +1,11 @@
 import edu.rit.pj2.Task;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+
 /**
  author: Jenny Zhen
  date: 04.06.14
@@ -35,5 +41,28 @@ public class PasswordCrack2 extends Task {
 
         // Save command line arguments into something meaningful.
         String dbFile = args[0];
+
+        // Read in the database file containing all users and their hashed passwords.
+        HashMap<String, String> databaseOfUsers = new HashMap<String, String>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(dbFile));
+            String line = reader.readLine();
+
+            while (line != null) {
+                String[] entry = line.split("\\s+");
+                if(!databaseOfUsers.containsKey(entry[0]))
+                    databaseOfUsers.put(entry[0], entry[1]);
+
+                line = reader.readLine();
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println(
+                    "Usage: java PasswordCrack dictionary db\n" +
+                            "Error: File " + dbFile + " could not be read.");
+        } catch (IOException e) {
+            System.err.println(
+                    "Usage: java PasswordCrack dictionary db\n" +
+                            "Error: File " + dbFile + " is empty.");
+        }
     }
 }
