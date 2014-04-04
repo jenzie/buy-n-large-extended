@@ -14,8 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 /**
- * Hasher takes in a plaintext password and converts it into a byte array after using SHA-256 to hash. The byte array
- * is then converted into a hexadecimal string.
+ * Hasher takes in a plaintext password and converts it into a byte array after 
+ * using SHA-256 to hash. The byte array is then converted into a hexadecimal 
+ * string.
  */
 public class Hasher {
 
@@ -56,7 +57,8 @@ public class Hasher {
     public static String byteArrayToHexString(byte[] data) {
         StringBuilder hexString = new StringBuilder();
         for (byte piece : data) {
-            // Convert each byte to hex, while ANDing with 0xFF to get the least significant byte (masking).
+            // Convert each byte to hex, while ANDing with 0xFF to get 
+			// the least significant byte (masking).
             String hex = Integer.toHexString(0xFF & piece);
 
             // Check each byte for missing leading zeroes.

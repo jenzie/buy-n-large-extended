@@ -1,3 +1,12 @@
+/**
+ author: Jenny Zhen
+ date: 04.06.14
+ language: Java
+ file: PasswordCrack2.java
+ assignment: BuyNLargeExtended
+ http://www.cs.rit.edu/~wrc/courses/csci251/projects/2/
+ */
+
 import edu.rit.pj2.Loop;
 import edu.rit.pj2.Task;
 
@@ -10,20 +19,14 @@ import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
 /**
- author: Jenny Zhen
- date: 04.06.14
- language: Java
- file: PasswordCrack2.java
- assignment: BuyNLargeExtended
- http://www.cs.rit.edu/~wrc/courses/csci251/projects/2/
- */
-
-/**
- * PasswordCrack2 cracks the passwords of users in a database file that is read in. A brute-force attack is used.
+ * PasswordCrack2 cracks the passwords of users in a database file that is 
+ * read in. A brute-force attack is used.
  *
- * Passwords consist of anywhere from one through four characters, where each character is a lowercase letter
- * a through z or a digit 0 through 9. Every such password is gone through, the digest of that password is computed,
- * and checked to see if the password digest matches that of any user in the database.
+ * Passwords consist of anywhere from one through four characters, where each 
+ * character is a lowercase letter a through z or a digit 0 through 9. Every 
+ * such password is gone through, the digest of that password is computed, and 
+ * checked to see if the password digest matches that of any user in the 
+ * database.
  *
  * Example Run:
  * java pj2 PasswordCrack2 db.txt
@@ -32,7 +35,8 @@ public class PasswordCrack2 extends Task {
 
     @Override
     /**
-     * Runs the program: parses input file in data to be used by the threads it start.
+     * Runs the program: parses input file in data to be used by the threads 
+	 * it start.
      * @param args array containing the name of the database file.
      */
     public void main(String[] args) throws Exception {
@@ -45,7 +49,8 @@ public class PasswordCrack2 extends Task {
         // Save command line arguments into something meaningful.
         String dbFile = args[0];
 
-        // Read in the database file containing all users and their hashed passwords.
+        // Read in the database file containing all users and their 
+		// hashed passwords.
         final ArrayList<User> databaseOfUsers = new ArrayList<User>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dbFile));
@@ -78,6 +83,7 @@ public class PasswordCrack2 extends Task {
                             "Error: File " + dbFile + " is empty.");
         }
 
+		// Keeping track.
         final Semaphore numUsersProcessed = new Semaphore(0);
         final Semaphore numPasswordsFound = new Semaphore(0);
 
@@ -87,25 +93,34 @@ public class PasswordCrack2 extends Task {
             public void run(int i) throws Exception {
                 User currentUser = databaseOfUsers.get(i);
                 Generator generator = new Generator();
-                //System.out.println(currentUser.getUser() + " " + currentUser.getPassword());
 
+				// Generate all possible passwords, check for a match.
                 for(String password : generator) {
-                    //System.out.println(password);
-                    String hashedPassword = Hasher.byteArrayToHexString(Hasher.getHash(password));
-                    //System.out.println(hashedPassword + " " + currentUser.getPassword());
+                    String hashedPassword = 
+						Hasher.byteArrayToHexString(Hasher.getHash(password));
+					
+					// Found a user with the generated password.
                     if(hashedPassword.equals(currentUser.getPassword())) {
-                        System.out.println(currentUser.getUser() + " " + password);
+                        System.out.println(
+							currentUser.getUser() + " " + password);
+						
+						// Increment the count of the passwords cracked.
                         numPasswordsFound.release();
                         break;
                     }
                 }
+				
+				// Increment the count of the users processed.
                 numUsersProcessed.release();
             }
         });
-        // As soon as all users have been processed, we need to print out the number processed.
+        // As soon as all users have been processed, 
+		// we need to print out the number processed.
         numUsersProcessed.acquire(databaseOfUsers.size());
 
+		// Print the summary of the results.
         System.out.println(databaseOfUsers.size() + " users");
-        System.out.println(numPasswordsFound.availablePermits() + " passwords found");
+        System.out.println(
+			numPasswordsFound.availablePermits() + " passwords found");
     }
 }
